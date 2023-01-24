@@ -1,0 +1,1 @@
+{"uuid":"2882ebb1-f394-49af-a687-b7057142093f","name":"TestTaskQAIbrahimov","children":["a72d68eb-348e-4f18-99ae-a045827c70da"],"befores":[{"name":"setupDriver","status":"passed","stage":"finished","description":"","steps":[],"attachments":[],"parameters":[],"start":1674567941031,"stop":1674567941471}],"afters":[],"start":1674567940993,"stop":1674567946263}
