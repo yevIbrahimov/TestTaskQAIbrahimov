@@ -80,8 +80,85 @@ public class MainPageTest {
         Assert.assertEquals(actualItemTitle, expectedItemTitle);
     }
 
+    @Test
+    public void TestCase2(){
+        //Navigate to web page
+        float totalExpectedPrice = 0;
+        WebDriver driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.get("http://demowebshop.tricentis.com/build-your-own-expensive-computer-2");
+
+        //Set all necessary params and count price
+        WebElement fastProcessorLabel = driver.findElement(By.xpath("//label[contains(text(), 'Fast')]"));
+        WebElement fastProcessorCheckbox = driver.findElement(By.id(fastProcessorLabel.getAttribute("for")));
+        fastProcessorCheckbox.click();
+        totalExpectedPrice += getPrice(fastProcessorLabel);
+
+        WebElement ramLabel = driver.findElement(By.xpath("//label[contains(text(), '8GB')]"));
+        WebElement ramCheckbox = driver.findElement(By.id(ramLabel.getAttribute("for")));
+        ramCheckbox.click();
+        totalExpectedPrice += getPrice(ramLabel);
+
+        List<WebElement> softwareCheckbox = driver.findElements(By.cssSelector("input[type = 'checkbox']"));
+        for (WebElement checkbox : softwareCheckbox) {
+            String id = checkbox.getAttribute("id");
+            WebElement softwareLabel = driver.findElement(By.cssSelector("label[for='" + id + "']"));
+            totalExpectedPrice += getPrice(softwareLabel);
+            softwareLabel.click();
+        }
+
+        String basePrice = driver.findElement(By.cssSelector("span[itemprop='price']")).getText();
+        totalExpectedPrice += Float.parseFloat(basePrice);
+
+        //Click "Add to cart" and check the shopping cart has +1 item.
+        int cartCountBefore = Integer.parseInt(driver.findElement(
+                By.className("cart-qty")).getText().replaceAll("[^0-9]", ""));
+
+        WebElement addToCartButton = driver.findElement(By.id("add-to-cart-button-74"));
+        addToCartButton.click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//p[contains(text(), 'The product has been added to your')]")));
+
+        int cartCountAfter = Integer.parseInt(driver.findElement(
+                By.className("cart-qty")).getText().replaceAll("[^0-9]", ""));
+
+
+        Assert.assertEquals(cartCountAfter, cartCountBefore + 1);
+
+        //Open the Shopping cart and check the item is there and the price is correct
+        String expectedItemTitle = driver.findElement(By.cssSelector("h1[itemprop = 'name']")).getText();
+
+        WebElement shoppingCardButton = driver.findElement(By.id("topcartlink"));
+        shoppingCardButton.click();
+
+        List<WebElement> shoppingCartItemList = driver.findElements(By.className("cart-item-row"));
+        Assert.assertEquals(shoppingCartItemList.size(), 1);
+
+        String actualItemTitle = driver.findElement(By.className("product-name")).getText();
+        Assert.assertEquals(actualItemTitle, expectedItemTitle);
+
+        float actualPrice = Float.parseFloat(driver.findElement(By.className("product-unit-price")).getText());
+        Assert.assertEquals(actualPrice, totalExpectedPrice);
+
+        //Remove the item from the shopping cart
+        WebElement removeCheckbox = driver.findElement(By.cssSelector("input[name = 'removefromcart']"));
+        removeCheckbox.click();
+
+        WebElement updateCartList = driver.findElement(By.cssSelector("input[name = 'updatecart']"));
+        updateCartList.click();
+
+        shoppingCartItemList = driver.findElements(By.className("cart-item-row"));
+        Assert.assertEquals(shoppingCartItemList.size(), 0);
+    }
+
     @AfterTest
     public void closeWindow(){
         driver.quit();
+    }
+
+    private float getPrice(WebElement element){
+        String text = element.getText();
+        return Float.parseFloat(text.substring(text.indexOf('+')+1, text.indexOf(']')));
     }
 }
