@@ -24,6 +24,7 @@ public class MainPageTest {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
     }
+
     @Test
     public void TestCase1(){
         //Navigate to web page
@@ -32,8 +33,7 @@ public class MainPageTest {
         driver.get("http://demowebshop.tricentis.com/");
 
         //Wait for page load and navigate to desktop page
-        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
-                webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+        waitForPage();
 
         WebElement computersButton = driver.findElement(By.xpath("//a[contains(text(),'Computers')]"));
         computersButton.click();
@@ -48,7 +48,7 @@ public class MainPageTest {
         itemCountOption.click();
 
         List<WebElement> itemsList = driver.findElements(By.className("item-box"));
-        Assert.assertEquals(itemsList.size(), 4);
+        Assert.assertEquals(itemsList.size(), 4, "Items count ont the page is wrong");
 
         //Sort "Price: High to Low", and click add to cart the most expensive item
         WebElement dropDownSort = driver.findElement(By.id("products-orderby"));
@@ -74,10 +74,11 @@ public class MainPageTest {
         shoppingCardButton.click();
 
         List<WebElement> shoppingCartItemList = driver.findElements(By.className("cart-item-row"));
-        Assert.assertEquals(shoppingCartItemList.size(), 1);
+        Assert.assertEquals(shoppingCartItemList.size(), 1,
+                "Added items count to the shopping list is wrong");
 
         String actualItemTitle = driver.findElement(By.className("product-name")).getText();
-        Assert.assertEquals(actualItemTitle, expectedItemTitle);
+        Assert.assertEquals(actualItemTitle, expectedItemTitle, "Added item title is wrong");
     }
 
     @Test
@@ -87,6 +88,7 @@ public class MainPageTest {
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get("http://demowebshop.tricentis.com/build-your-own-expensive-computer-2");
+        waitForPage();
 
         //Set all necessary params and count price
         WebElement fastProcessorLabel = driver.findElement(By.xpath("//label[contains(text(), 'Fast')]"));
@@ -123,8 +125,7 @@ public class MainPageTest {
         int cartCountAfter = Integer.parseInt(driver.findElement(
                 By.className("cart-qty")).getText().replaceAll("[^0-9]", ""));
 
-
-        Assert.assertEquals(cartCountAfter, cartCountBefore + 1);
+        Assert.assertEquals(cartCountAfter, cartCountBefore + 1, "Shopping cart counter is wrong");
 
         //Open the Shopping cart and check the item is there and the price is correct
         String expectedItemTitle = driver.findElement(By.cssSelector("h1[itemprop = 'name']")).getText();
@@ -133,13 +134,13 @@ public class MainPageTest {
         shoppingCardButton.click();
 
         List<WebElement> shoppingCartItemList = driver.findElements(By.className("cart-item-row"));
-        Assert.assertEquals(shoppingCartItemList.size(), 1);
+        Assert.assertEquals(shoppingCartItemList.size(), 1, "Items count in shopping cart is wrong");
 
         String actualItemTitle = driver.findElement(By.className("product-name")).getText();
-        Assert.assertEquals(actualItemTitle, expectedItemTitle);
+        Assert.assertEquals(actualItemTitle, expectedItemTitle, "Added item title is wrong");
 
         float actualPrice = Float.parseFloat(driver.findElement(By.className("product-unit-price")).getText());
-        Assert.assertEquals(actualPrice, totalExpectedPrice);
+        Assert.assertEquals(actualPrice, totalExpectedPrice, "Item total price is wrong");
 
         //Remove the item from the shopping cart
         WebElement removeCheckbox = driver.findElement(By.cssSelector("input[name = 'removefromcart']"));
@@ -149,7 +150,7 @@ public class MainPageTest {
         updateCartList.click();
 
         shoppingCartItemList = driver.findElements(By.className("cart-item-row"));
-        Assert.assertEquals(shoppingCartItemList.size(), 0);
+        Assert.assertEquals(shoppingCartItemList.size(), 0, "Items count in shopping cart is wrong");
     }
 
     @AfterTest
@@ -160,5 +161,10 @@ public class MainPageTest {
     private float getPrice(WebElement element){
         String text = element.getText();
         return Float.parseFloat(text.substring(text.indexOf('+')+1, text.indexOf(']')));
+    }
+
+    private void waitForPage(){
+        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
+                webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
     }
 }
