@@ -2,6 +2,7 @@ package com.example.testtaskqaibrahimov;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -24,7 +25,6 @@ public class ApiTest {
 
         Response authResponse = given()
                 .header("Content-type", "application/json")
-                .and()
                 .body(authRequestBody)
                 .when()
                     .post("/auth")
@@ -43,22 +43,22 @@ public class ApiTest {
         String checkout = "2019-01-01";
         String additionalneeds = "Breakfast";
 
-        String newBookingRequestBody = "{\n" +
-                "    \"firstname\" : \""+firstname+"\",\n" +
-                "    \"lastname\" : \""+lastname+"\",\n" +
-                "    \"totalprice\" : "+totalprice+",\n" +
-                "    \"depositpaid\" : "+depositpaid+",\n" +
-                "    \"bookingdates\" : {\n" +
-                "        \"checkin\" : \""+checkin+"\",\n" +
-                "        \"checkout\" : \""+checkout+"\"\n" +
-                "    },\n" +
-                "    \"additionalneeds\" : \""+additionalneeds+"\"\n" +
-                "}";
+        String newBookingRequestBody = String.format("""
+                {
+                    "firstname" : "%s",
+                    "lastname" : "%s",
+                    "totalprice" : %s,
+                    "depositpaid" : %s,
+                    "bookingdates" : {
+                        "checkin" : "%s",
+                        "checkout" : "%s"
+                    },
+                    "additionalneeds" : "%s"
+                }""", firstname, lastname, totalprice, depositpaid, checkin, checkout, additionalneeds);
 
         Response newBookingResponse = given()
                 .header("Content-type", "application/json")
                 .header("Cookie", "token="+token) //no need to use token to create booking using POST
-                .and()
                 .body(newBookingRequestBody)
                 .when()
                     .post("/booking")
@@ -80,14 +80,14 @@ public class ApiTest {
 
         //Update the booking details
         totalprice = 200;
-        String updateBookingRequestBody = "{\n" +
-                "    \"totalprice\" : \""+ totalprice +"\"\n" +
-                "}";
+        String updateBookingRequestBody = String.format("""
+                {
+                    "totalprice" : %s
+                }""", totalprice);
 
         given()
         .header("Content-type", "application/json")
         .header("Cookie", "token="+token)
-        .and()
         .body(updateBookingRequestBody)
         .when()
             .patch("/booking/"+bookingId)
@@ -97,19 +97,18 @@ public class ApiTest {
         //Get details of the updated booking, and ensure it has new details.
         Response getBookingResponse = given()
                 .header("Content-type", "application/json")
-                .and()
                 .when()
                     .get("/booking/"+bookingId)
                 .then()
                     .statusCode(200)
                 .extract().response();
 
-        Assert.assertEquals((Integer) getBookingResponse.path("totalprice"), totalprice);
+        Assert.assertEquals((Integer) getBookingResponse.path("totalprice"), totalprice,
+                "Total price was not updated");
 
         //Get all bookings and check them have a newly created booking
         Response getAllBookingResponse = given()
                 .header("Content-type", "application/json")
-                .and()
                 .when()
                     .get("/booking")
                 .then()
@@ -117,29 +116,27 @@ public class ApiTest {
                 .extract().response();
 
         ArrayList<?> bookingIdList = getAllBookingResponse.path("bookingid");
-        Assert.assertTrue(bookingIdList.contains(bookingId));
+        Assert.assertTrue(bookingIdList.contains(bookingId), "Booking id is not available");
 
         //Delete the booking.
         given()
                 .header("Content-type", "application/json")
                 .header("Cookie", "token="+token)
-                .and()
                 .when()
-                .delete("/booking/"+bookingId)
+                    .delete("/booking/"+bookingId)
                 .then()
-                .statusCode(201);
+                    .statusCode(201);
 
         //Verify booking id is no longer available
         getAllBookingResponse = given()
                 .header("Content-type", "application/json")
-                .and()
                 .when()
-                .get("/booking")
+                    .get("/booking")
                 .then()
-                .statusCode(200)
+                    .statusCode(200)
                 .extract().response();
 
         bookingIdList = getAllBookingResponse.path("bookingid");
-        Assert.assertFalse(bookingIdList.contains(bookingId));
+        Assert.assertFalse(bookingIdList.contains(bookingId), "Booking id is still available");
     }
 }
