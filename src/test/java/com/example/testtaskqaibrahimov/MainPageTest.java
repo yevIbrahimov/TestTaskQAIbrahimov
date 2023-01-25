@@ -28,7 +28,6 @@ public class MainPageTest {
     @Test
     public void TestCase1(){
         //Navigate to web page
-        WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get("http://demowebshop.tricentis.com/");
 
