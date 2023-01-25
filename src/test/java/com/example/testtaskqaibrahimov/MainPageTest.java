@@ -84,7 +84,6 @@ public class MainPageTest {
     public void TestCase2(){
         //Navigate to web page
         float totalExpectedPrice = 0;
-        WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get("http://demowebshop.tricentis.com/build-your-own-expensive-computer-2");
         waitForPage();
